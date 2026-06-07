@@ -1,0 +1,36 @@
+{
+  "name": "KnoxRPG Digital Terrain",
+  "image": "mcr.microsoft.com/devcontainers/javascript-node:20-bullseye",
+  "features": {
+    "ghcr.io/devcontainers/features/git:1": {}
+  },
+  "customizations": {
+    "vscode": {
+      "extensions": [
+        "dbaeumer.vscode-eslint",
+        "esbenp.prettier-vscode",
+        "ms-vscode.vscode-typescript-next",
+        "ms-vscode.vscode-json",
+        "ms-playwright.playwright",
+        "GitHub.copilot",
+        "GitHub.copilot-chat",
+        "vite.vite",
+        "ms-vscode.live-server"
+      ],
+      "settings": {
+        "terminal.integrated.defaultProfile.linux": "bash",
+        "npm.packageManager": "npm"
+      }
+    }
+  },
+  "forwardPorts": [3001, 5173],
+  "portsAttributes": {
+    "3001": {
+      "label": "Express API"
+    },
+    "5173": {
+      "label": "React Dev Server"
+    }
+  },
+  "postCreateCommand": "npm install && cd client && npm install"
+}

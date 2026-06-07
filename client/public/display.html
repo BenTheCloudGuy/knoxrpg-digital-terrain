@@ -1,0 +1,176 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>KnoxRPG Full-Screen Display</title>
+    <style>
+      :root {
+        color-scheme: dark;
+        font-family: Inter, 'Segoe UI', sans-serif;
+        background: #020617;
+      }
+
+      html, body {
+        width: 100%;
+        height: 100%;
+        margin: 0;
+        overflow: hidden;
+        background: #020617;
+      }
+
+      body {
+        display: grid;
+        place-items: center;
+        color: #eff6ff;
+      }
+
+      #display-shell {
+        width: 100vw;
+        height: 100vh;
+        display: grid;
+        place-items: center;
+        background:
+          radial-gradient(circle at top, rgba(56, 189, 248, 0.08), transparent 30%),
+          linear-gradient(145deg, #020617 0%, #111827 45%, #020617 100%);
+      }
+
+      #display-shell.hidden { display: none; }
+
+      #media-frame {
+        width: 100vw;
+        height: 100vh;
+        display: grid;
+        place-items: center;
+        overflow: hidden;
+        transform: scale(var(--zoom, 1));
+        transform-origin: center center;
+        transition: transform 120ms ease;
+      }
+
+      #media-frame img,
+      #media-frame video {
+        width: 100%;
+        height: 100%;
+        object-fit: contain;
+        background: #020617;
+      }
+
+      #empty-state {
+        text-align: center;
+        max-width: 420px;
+        padding: 24px;
+        border-radius: 18px;
+        background: rgba(15, 23, 42, 0.82);
+        border: 1px solid rgba(148, 163, 184, 0.2);
+      }
+
+      #empty-state h1 { font-size: 1.4rem; margin: 0 0 8px; }
+      #empty-state p { color: #cbd5e1; margin: 0; }
+    </style>
+  </head>
+  <body>
+    <main id="display-shell" class="hidden">
+      <section id="media-frame"></section>
+    </main>
+    <section id="empty-state">
+      <h1>Waiting for a map…</h1>
+      <p>Open the admin panel, upload a map, and mark it active to see it here.</p>
+    </section>
+
+    <script>
+      const displayShell = document.getElementById('display-shell');
+      const mediaFrame = document.getElementById('media-frame');
+      const emptyState = document.getElementById('empty-state');
+      const zoomState = { level: Number(localStorage.getItem('knoxrpg-zoom')) || 1 };
+      const displayChannel = typeof BroadcastChannel !== 'undefined' ? new BroadcastChannel('knoxrpg-display') : null;
+      let currentMap = null;
+      let currentVideoElement = null;
+
+      function updateZoom() {
+        mediaFrame.style.setProperty('--zoom', zoomState.level.toFixed(2));
+      }
+
+      function renderMap(map) {
+        currentMap = map;
+        mediaFrame.innerHTML = '';
+
+        if (!map) {
+          emptyState.hidden = false;
+          displayShell.classList.add('hidden');
+          return;
+        }
+
+        emptyState.hidden = true;
+        displayShell.classList.remove('hidden');
+
+        if (map.type === 'video') {
+          const video = document.createElement('video');
+          video.src = map.path;
+          video.autoplay = true;
+          video.muted = true;
+          video.loop = true;
+          video.playsInline = true;
+          video.controls = false;
+          currentVideoElement = video;
+          video.addEventListener('loadeddata', () => video.play().catch(() => {}));
+          mediaFrame.appendChild(video);
+        } else {
+          currentVideoElement = null;
+          const image = document.createElement('img');
+          image.src = map.path;
+          image.alt = map.name;
+          mediaFrame.appendChild(image);
+        }
+
+        updateZoom();
+      }
+
+      function changeZoom(delta) {
+        zoomState.level = Math.min(3, Math.max(0.7, zoomState.level + delta));
+        updateZoom();
+      }
+
+      function loadActiveMap() {
+        fetch('/api/maps/active')
+          .then((response) => response.json())
+          .then((map) => renderMap(map))
+          .catch(() => renderMap(null));
+      }
+
+      displayChannel?.addEventListener('message', (event) => {
+        const { type, level, action } = event.data || {};
+        if (type === 'zoom' && typeof level === 'number') {
+          zoomState.level = level;
+          updateZoom();
+          return;
+        }
+
+        if (type === 'video' && currentVideoElement) {
+          if (action === 'play') currentVideoElement.play().catch(() => {});
+          if (action === 'pause') currentVideoElement.pause();
+          if (action === 'toggle-loop') {
+            currentVideoElement.loop = !currentVideoElement.loop;
+          }
+        }
+      });
+
+      window.addEventListener('wheel', (event) => {
+        event.preventDefault();
+        changeZoom(event.deltaY < 0 ? 0.05 : -0.05);
+      }, { passive: false });
+
+      window.addEventListener('keydown', (event) => {
+        if (event.key === '+' || event.key === '=') changeZoom(0.05);
+        if (event.key === '-') changeZoom(-0.05);
+      });
+
+      loadActiveMap();
+      window.setInterval(loadActiveMap, 3000);
+
+      if (document.documentElement.requestFullscreen) {
+        document.documentElement.requestFullscreen().catch(() => {});
+      }
+    </script>
+  </body>
+</html>

@@ -1,0 +1,12 @@
+{
+	"version": "2.0.0",
+	"tasks": [
+		{
+			"label": "Check Node",
+			"type": "shell",
+			"command": "node --version && npm --version",
+			"isBackground": false,
+			"problemMatcher": []
+		}
+	]
+}

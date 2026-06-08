@@ -178,7 +178,6 @@ export default function App() {
     <div className="app-shell">
       <header className="hero-card">
         <div>
-          <p className="eyebrow">KnoxRPG Digital Terrain</p>
           <h1 className="hero-title">KnoxRPG Digital Terrain</h1>
         </div>
         <a className="display-button" href="/display.html" target="_blank" rel="noreferrer">

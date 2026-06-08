@@ -24,6 +24,9 @@
         place-items: center;
         color: #eff6ff;
         cursor: none;
+        user-select: none;
+        -webkit-user-select: none;
+        -webkit-tap-highlight-color: transparent;
       }
 
       #display-shell {
@@ -242,6 +245,18 @@
       window.setInterval(syncDisplayState, 1000);
 
       document.body.style.cursor = 'none';
+      document.documentElement.style.cursor = 'none';
+      document.body.style.overflow = 'hidden';
+
+      function hideCursor() {
+        document.body.style.cursor = 'none';
+        document.documentElement.style.cursor = 'none';
+      }
+
+      hideCursor();
+      window.addEventListener('mousemove', hideCursor, { passive: true });
+      window.addEventListener('mousedown', hideCursor, { passive: true });
+      window.addEventListener('touchstart', hideCursor, { passive: true });
 
       if (document.documentElement.requestFullscreen) {
         document.documentElement.requestFullscreen().catch(() => {});

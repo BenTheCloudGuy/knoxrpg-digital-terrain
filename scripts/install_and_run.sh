@@ -27,6 +27,7 @@ echo "[2.5/4] Building the React client for production..."
 npm run build
 
 echo "[2.7/4] Installing blank Xcursor theme for the kiosk user..."
+chmod +x "${PROJECT_DIR}/scripts/install_blank_cursor.sh"
 runuser -u "${SUDO_USER:-pi}" -- bash "${PROJECT_DIR}/scripts/install_blank_cursor.sh"
 
 echo "[3/4] Creating systemd services..."
@@ -86,3 +87,19 @@ printf '\n[4/4] Services are enabled and running.\n'
 systemctl status "$SERVICE_NAME" --no-pager
 printf '\nDisplay service status:\n'
 systemctl status "knoxrpg-digital-terrain-display.service" --no-pager || true
+
+cat <<'BANNER'
+
+================================================================
+ REBOOT REQUIRED to finish setup.
+
+ The blank Xcursor theme was written to ~/.config/labwc/environment,
+ but the labwc Wayland compositor only picks up new XCURSOR_* values
+ at session start. Run:
+
+     sudo reboot
+
+ After reboot, the kiosk display should come up with no visible
+ cursor and no keyring unlock prompt.
+================================================================
+BANNER

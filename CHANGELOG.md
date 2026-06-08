@@ -4,6 +4,12 @@ All notable changes to this project will be documented in this file.
 
 ## [Unreleased]
 
+## [1.0.13] - 2026-06-07
+
+### Changed
+- `install_and_run.sh` now `chmod +x`s the cursor installer before invoking it and prints a clear "REBOOT REQUIRED" banner at the end so fresh deployments do not skip the labwc relaunch step that activates `XCURSOR_THEME`/`XCURSOR_SIZE`.
+- `restart_kdt.sh` is now self-healing for existing installs: if `~/.icons/blank/cursors` is missing, it installs `x11-apps` (if needed) and runs the blank-cursor installer as the kiosk user, then warns that a reboot is required for labwc to pick up the new env vars. Service restarts still happen as before.
+
 ## [1.0.12] - 2026-06-07
 
 ### Fixed

@@ -7,6 +7,10 @@ This repository contains the code for the KnoxRPG Digital Terrain App, a web app
 - AI/CoPilot MUST follow the directions under .github/copilot-instructions.md when generating code.
 - AI/CoPilot MUST not make assumptions about the requirements or implementation details that are not explicitly stated in this document. If there is ambiguity or missing information, AI/CoPilot MUST ask for clarification before generating code.
 - AI/CoPilot MUST not use LLM/AI sounding phases and emojis in Code/Comments or Docmemtation.
+- AI/CoPilot MUST NOT run, restart, deploy, or otherwise alter the Raspberry Pi runtime, services, or browser display unless the user explicitly asks for that step.
+- AI/CoPilot MUST update the repository changelog and semantic version information whenever code changes are made.
+- Semantic version bumps must follow the usual convention: patch for bug fixes, minor for new features, major for breaking changes.
+- Any code change that affects behavior or deployment must be documented in CHANGELOG.md before the task is considered complete.
 
 ## Hardware Requirements
 - The Application will run on a Raspberry Pi with at least 2GB of RAM.

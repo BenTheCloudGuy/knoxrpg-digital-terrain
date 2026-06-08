@@ -9,8 +9,12 @@ export default function App() {
   const [name, setName] = useState('');
   const [description, setDescription] = useState('');
   const [uploading, setUploading] = useState(false);
+  const [savingEdit, setSavingEdit] = useState(false);
   const [error, setError] = useState('');
   const [zoomLevel, setZoomLevel] = useState(1);
+  const [editingMap, setEditingMap] = useState(null);
+  const [editName, setEditName] = useState('');
+  const [editDescription, setEditDescription] = useState('');
   const channelRef = useRef(null);
 
   const activeMap = useMemo(() => maps.find((map) => map.active) || maps[0] || null, [maps]);
@@ -125,31 +129,49 @@ export default function App() {
     }
   }
 
-  async function handleEdit(mapId) {
+  function handleEditStart(mapId) {
     const currentMap = maps.find((map) => map.id === mapId);
     if (!currentMap) {
       return;
     }
 
-    const nextName = window.prompt('Map name', currentMap.name);
-    if (nextName === null) {
+    setEditingMap(currentMap);
+    setEditName(currentMap.name);
+    setEditDescription(currentMap.description || '');
+    setError('');
+  }
+
+  async function handleEditSave(event) {
+    event.preventDefault();
+
+    if (!editingMap) {
       return;
     }
 
-    const nextDescription = window.prompt('Map description', currentMap.description || '');
-    if (nextDescription === null) {
-      return;
-    }
+    setSavingEdit(true);
+    setError('');
 
-    const response = await fetch(`/api/maps/${mapId}`, {
+    const response = await fetch(`/api/maps/${editingMap.id}`, {
       method: 'PUT',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ name: nextName.trim(), description: nextDescription.trim() }),
+      body: JSON.stringify({
+        name: editName.trim(),
+        description: editDescription.trim(),
+      }),
     });
 
-    if (response.ok) {
-      await loadMaps();
+    if (!response.ok) {
+      const payload = await response.json().catch(() => ({}));
+      setError(payload.error || 'The map could not be updated.');
+      setSavingEdit(false);
+      return;
     }
+
+    await loadMaps();
+    setEditingMap(null);
+    setEditName('');
+    setEditDescription('');
+    setSavingEdit(false);
   }
 
   return (
@@ -157,10 +179,7 @@ export default function App() {
       <header className="hero-card">
         <div>
           <p className="eyebrow">KnoxRPG Digital Terrain</p>
-          <h1>Run your tabletop map wall from one simple control panel.</h1>
-          <p className="lede">
-            Upload JPEG, PNG, MP4, or WEBM maps, mark one as active, and open a dedicated full-screen display view for your Raspberry Pi.
-          </p>
+          <h1 className="hero-title">KnoxRPG Digital Terrain</h1>
         </div>
         <a className="display-button" href="/display.html" target="_blank" rel="noreferrer">
           Open full-screen display
@@ -263,13 +282,38 @@ export default function App() {
                 <button onClick={() => handleSetActive(map.id)} className="secondary-button">
                   {map.active ? 'Active now' : 'Set as active'}
                 </button>
-                <button onClick={() => handleEdit(map.id)} className="secondary-button">Edit</button>
+                <button onClick={() => handleEditStart(map.id)} className="secondary-button">Edit</button>
                 <button onClick={() => handleDelete(map.id)} className="danger-button">Delete</button>
               </div>
             </article>
           ))}
         </div>
       </section>
+
+      {editingMap ? (
+        <div className="modal-backdrop" onClick={() => setEditingMap(null)}>
+          <form className="panel modal-card" onClick={(event) => event.stopPropagation()} onSubmit={handleEditSave}>
+            <div>
+              <p className="eyebrow">Edit map</p>
+              <h2>{editingMap.name}</h2>
+              <p className="muted">Update the map name and description shown in the admin panel.</p>
+            </div>
+            <label>
+              Map name
+              <input value={editName} onChange={(event) => setEditName(event.target.value)} type="text" />
+            </label>
+            <label>
+              Description
+              <textarea value={editDescription} onChange={(event) => setEditDescription(event.target.value)} rows="4" />
+            </label>
+            {error ? <p className="error-text">{error}</p> : null}
+            <div className="modal-actions">
+              <button type="button" className="secondary-button" onClick={() => setEditingMap(null)}>Cancel</button>
+              <button type="submit" disabled={savingEdit}>{savingEdit ? 'Saving…' : 'Save changes'}</button>
+            </div>
+          </form>
+        </div>
+      ) : null}
     </div>
   );
 }

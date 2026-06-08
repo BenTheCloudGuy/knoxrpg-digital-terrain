@@ -48,6 +48,12 @@ h1 {
   line-height: 1.08;
 }
 
+.hero-title {
+  font-size: clamp(3rem, 7vw, 5rem);
+  line-height: 1;
+  margin: 0;
+}
+
 .lede, .muted {
   color: #cbd5e1;
 }
@@ -169,7 +175,28 @@ input, textarea {
 .secondary-button { background: rgba(148, 163, 184, 0.12); color: #eff6ff; }
 .danger-button { background: rgba(248, 113, 113, 0.95); color: #fff; }
 
-.error-text { color: #fecaca; }
+.modal-backdrop {
+  position: fixed;
+  inset: 0;
+  display: grid;
+  place-items: center;
+  padding: 18px;
+  background: rgba(2, 6, 23, 0.72);
+  backdrop-filter: blur(8px);
+  z-index: 50;
+}
+
+.modal-card {
+  width: min(520px, 100%);
+  display: grid;
+  gap: 14px;
+}
+
+.modal-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 10px;
+}
 
 @media (max-width: 980px) {
   .dashboard-grid { grid-template-columns: 1fr; }

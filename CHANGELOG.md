@@ -4,13 +4,16 @@ All notable changes to this project will be documented in this file.
 
 ## [Unreleased]
 
-### Added
-- Initial project structure for the KnoxRPG Digital Terrain app.
-- Express API for map uploads, activation, deletion, and editing.
-- React admin interface for managing maps and display controls.
-- Full-screen display page for Raspberry Pi map wall output.
-- Raspberry Pi setup script under `scripts/prepare_pi.sh`.
-- Dev container configuration for Node.js and VS Code development.
+### Changed
+- Added repository guardrails to require explicit user approval for runtime changes and to require changelog/version updates for every code change.
+
+## [1.0.1] - 2026-06-08
+
+### Fixed
+- Replaced the browser prompt-based map edit flow with an in-page edit dialog so the Edit button works in the admin interface.
+
+### Changed
+- Added server-backed display control syncing to support the Pi display path more reliably.
 
 ## [1.0.0] - 2026-06-07
 

@@ -1,5 +1,6 @@
 {
   "name": "knoxrpg-digital-terrain",
+  "version": "1.0.1",
   "private": true,
   "scripts": {
     "dev": "concurrently \"npm run server\" \"npm run client\"",

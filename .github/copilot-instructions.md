@@ -33,7 +33,7 @@ This repository contains the code for the KnoxRPG Digital Terrain App, a web app
 - Use meaningful variable and function names that clearly indicate their purpose.
 
 ## Raspberry Pi Setup
-- Use `scripts/prepare_pi.sh` to install Node.js 20, npm, project dependencies, and the local upload/data folders on the Raspberry Pi.
+- Use `scripts/prepare_pi.sh` to install the latest stable Node.js and npm, project dependencies, and the local upload/data folders on the Raspberry Pi.
 - Run the script with:
   - `chmod +x scripts/prepare_pi.sh`
   - `./scripts/prepare_pi.sh`

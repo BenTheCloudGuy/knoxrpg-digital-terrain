@@ -25,4 +25,15 @@ chmod +x scripts/prepare_pi.sh
 ./scripts/prepare_pi.sh
 ```
 
-This installs Node.js 20, npm, the project dependencies, and the required local data/upload folders for the app.
+This installs the latest stable Node.js and npm, the project dependencies, and the required local data/upload folders for the app.
+
+## Install and run as a service
+
+To install dependencies and configure the app to start automatically on boot:
+
+```sh
+sudo chmod +x scripts/install_and_run.sh
+sudo ./scripts/install_and_run.sh
+```
+
+This creates a systemd service named `knoxrpg-digital-terrain`, enables it on boot, and restarts it automatically if the app crashes.

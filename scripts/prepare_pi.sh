@@ -5,12 +5,15 @@ echo "[1/5] Updating system packages..."
 sudo apt-get update
 sudo apt-get install -y curl git build-essential python3
 
-echo "[2/5] Installing Node.js 20 LTS via NodeSource..."
-if ! command -v node >/dev/null 2>&1; then
-  curl -fsSL https://deb.nodesource.com/setup_20.x | sudo -E bash -
-  sudo apt-get install -y nodejs
-else
-  echo "Node.js is already installed: $(node -v)"
+echo "[2/5] Installing the latest stable Node.js and npm..."
+curl -fsSL https://deb.nodesource.com/setup_current.x | sudo -E bash -
+if command -v node >/dev/null 2>&1; then
+  echo "Current Node.js version before upgrade: $(node -v)"
+fi
+sudo apt-get install -y nodejs
+if command -v node >/dev/null 2>&1; then
+  echo "Node.js version after upgrade: $(node -v)"
+  echo "npm version after upgrade: $(npm -v)"
 fi
 
 echo "[3/5] Verifying npm..."

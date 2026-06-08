@@ -21,14 +21,14 @@ runuser -u "$APP_USER" -- env \
   bash -lc "cd '$APP_DIR' && npm install --no-audit --no-fund --no-progress && cd client && npm install --no-audit --no-fund --no-progress && npm run build"
 
 APP_HOME="$(getent passwd "$APP_USER" | cut -d: -f6)"
-if [ ! -d "$APP_HOME/.icons/blank/cursors" ]; then
-  printf 'Blank cursor theme missing; installing now...\n'
+if [ ! -d /usr/share/icons/blank/cursors ] || ! grep -q '^XCURSOR_THEME=blank' /etc/xdg/labwc/environment 2>/dev/null; then
+  printf 'Blank cursor theme missing or not applied; installing now...\n'
   if ! command -v xcursorgen >/dev/null 2>&1; then
     apt-get update
     apt-get install -y x11-apps
   fi
   chmod +x "$APP_DIR/scripts/install_blank_cursor.sh"
-  runuser -u "$APP_USER" -- bash "$APP_DIR/scripts/install_blank_cursor.sh"
+  bash "$APP_DIR/scripts/install_blank_cursor.sh"
   printf 'Cursor theme installed. A reboot is required for labwc to pick up XCURSOR_* env vars.\n'
 fi
 

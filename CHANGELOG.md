@@ -4,6 +4,17 @@ All notable changes to this project will be documented in this file.
 
 ## [Unreleased]
 
+## [1.0.15] - 2026-06-07
+
+### Fixed
+- The blank Xcursor theme was being installed to `~/.icons/blank/` and the env vars to `~/.config/labwc/environment`, but the Raspberry Pi OS `labwc-pi` wrapper ignores both of those locations entirely. It only reads `/etc/xdg/labwc/environment`, which ships with `XCURSOR_THEME=PiXtrix` and `XCURSOR_SIZE=24` hardcoded. Reworked `install_blank_cursor.sh` to install the theme system-wide under `/usr/share/icons/blank/` and to patch the system labwc environment file in place (with a one-time backup at `/etc/xdg/labwc/environment.bak.knoxrpg` for easy revert). Verified working on Pi: live `grim` screenshot of the kiosk display shows no cursor anywhere on screen.
+- `install_and_run.sh`, `prepare_pi.sh`, and `restart_kdt.sh` updated to invoke the cursor installer as root (it now requires write access to `/usr/share/icons` and `/etc/xdg/labwc`). The `restart_kdt.sh` self-heal check now looks at `/usr/share/icons/blank/cursors` and also re-runs the installer if `/etc/xdg/labwc/environment` is not pointing at the blank theme, so future labwc/Pi-OS updates that restore the default cursor are caught automatically.
+
+## [1.0.14] - 2026-06-07
+
+### Fixed
+- The base64-embedded 1x1 transparent PNG inside `install_blank_cursor.sh` was malformed; `xcursorgen` reported `PNG error while reading blank.png` and `set -e` aborted the rest of the installer (leaving a stub cursor file, no cursor-name symlinks, and an untouched `~/.config/labwc/environment`). Replaced the embedded base64 with a tiny inline `python3` snippet that builds a byte-perfect 67-byte 1x1 transparent RGBA PNG from the PNG spec, so the installer now consistently produces the 70+ symlinks and writes the `XCURSOR_THEME`/`XCURSOR_SIZE` lines.
+
 ## [1.0.13] - 2026-06-07
 
 ### Changed

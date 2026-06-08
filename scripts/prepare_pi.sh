@@ -32,7 +32,7 @@ npm run build
 
 echo "[6/6] Creating upload and data directories, installing blank cursor theme..."
 mkdir -p uploads data
-bash scripts/install_blank_cursor.sh
+sudo bash scripts/install_blank_cursor.sh
 
 echo "Preparation complete."
 echo "Run: npm run dev (for local development) or use scripts/install_and_run.sh (for the Pi service install)."

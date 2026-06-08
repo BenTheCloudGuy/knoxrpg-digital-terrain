@@ -1,16 +1,19 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-# Installs a fully transparent Xcursor theme for the target user so the labwc
-# Wayland compositor draws no visible pointer. Run once per user account.
-# Re-running is safe.
+# Installs a fully transparent system-wide Xcursor theme so the labwc
+# Wayland compositor on Raspberry Pi OS draws no visible pointer.
+# Run once during Pi setup as the root user (or via sudo). Re-running
+# is safe.
 
 THEME_NAME="${THEME_NAME:-blank}"
-TARGET_USER="${SUDO_USER:-${USER:-$(id -un)}}"
-TARGET_HOME="$(getent passwd "$TARGET_USER" | cut -d: -f6)"
 
-if [ -z "$TARGET_HOME" ] || [ ! -d "$TARGET_HOME" ]; then
-  echo "Could not resolve home directory for user '$TARGET_USER'." >&2
+if [ "$(id -u)" -eq 0 ]; then
+  SUDO=""
+elif command -v sudo >/dev/null 2>&1; then
+  SUDO=sudo
+else
+  echo "This script must be run as root or with sudo available." >&2
   exit 1
 fi
 
@@ -19,33 +22,48 @@ if ! command -v xcursorgen >/dev/null 2>&1; then
   exit 1
 fi
 
-THEME_DIR="$TARGET_HOME/.icons/$THEME_NAME"
+if ! command -v python3 >/dev/null 2>&1; then
+  echo "python3 is required to generate the transparent cursor PNG." >&2
+  exit 1
+fi
+
+THEME_DIR="/usr/share/icons/$THEME_NAME"
 CURSORS_DIR="$THEME_DIR/cursors"
-ENV_FILE="$TARGET_HOME/.config/labwc/environment"
+SYSTEM_ENV_FILE="/etc/xdg/labwc/environment"
 
 WORK_DIR="$(mktemp -d)"
 trap 'rm -rf "$WORK_DIR"' EXIT
 
-# 1x1 fully transparent PNG, base64-encoded
-cat > "$WORK_DIR/blank.png.b64" <<'PNG_B64'
-iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNkYGD4DwABBAEAfbLI3wAAAABJRU5ErkJggg==
-PNG_B64
-base64 -d "$WORK_DIR/blank.png.b64" > "$WORK_DIR/blank.png"
+# Generate a known-good 1x1 fully transparent RGBA PNG.
+python3 - "$WORK_DIR/blank.png" <<'PY'
+import struct, sys, zlib
+def chunk(name, data):
+    return (len(data).to_bytes(4, "big") + name + data
+            + zlib.crc32(name + data).to_bytes(4, "big"))
+png = b"\x89PNG\r\n\x1a\n"
+png += chunk(b"IHDR", struct.pack(">IIBBBBB", 1, 1, 8, 6, 0, 0, 0))
+png += chunk(b"IDAT", zlib.compress(b"\x00\x00\x00\x00\x00"))
+png += chunk(b"IEND", b"")
+open(sys.argv[1], "wb").write(png)
+PY
 
 printf '1 0 0 blank.png\n' > "$WORK_DIR/blank.cursor"
 
-mkdir -p "$CURSORS_DIR"
-xcursorgen "$WORK_DIR/blank.cursor" "$CURSORS_DIR/default"
+( cd "$WORK_DIR" && xcursorgen blank.cursor blank-cursor.bin )
 
-cat > "$THEME_DIR/index.theme" <<EOF
+$SUDO install -d -m 0755 "$CURSORS_DIR"
+$SUDO install -D -m 0644 "$WORK_DIR/blank-cursor.bin" "$CURSORS_DIR/default"
+
+$SUDO tee "$THEME_DIR/index.theme" >/dev/null <<EOF
 [Icon Theme]
 Name=$THEME_NAME
 Comment=Fully transparent cursor for kiosk display
 Inherits=core
 EOF
 
-# Alias every common cursor name to the blank one so no app can pull
-# in a visible glyph from the inherited theme.
+# Alias every common cursor name to the blank one so no app can pull in a
+# visible glyph from the inherited theme. Covers X11 (left_ptr, fleur,
+# ...) and CSS3 (pointer, grab, zoom-in, ...) names.
 CURSOR_NAMES=(
   left_ptr top_left_arrow X_cursor arrow
   hand hand1 hand2 pointer pointing_hand
@@ -68,21 +86,36 @@ CURSOR_NAMES=(
   pencil draft_small draft_large
 )
 
-cd "$CURSORS_DIR"
 for name in "${CURSOR_NAMES[@]}"; do
-  ln -sf default "$name"
+  $SUDO ln -sf default "$CURSORS_DIR/$name"
 done
 
-mkdir -p "$(dirname "$ENV_FILE")"
-touch "$ENV_FILE"
-# Drop any prior XCURSOR_* lines so re-running does not stack duplicates.
-sed -i '/^XCURSOR_THEME=/d; /^XCURSOR_SIZE=/d' "$ENV_FILE"
-printf 'XCURSOR_THEME=%s\nXCURSOR_SIZE=1\n' "$THEME_NAME" >> "$ENV_FILE"
-
-chown -R "$TARGET_USER:$TARGET_USER" "$TARGET_HOME/.icons" "$TARGET_HOME/.config/labwc"
+# On Raspberry Pi OS the labwc-pi wrapper reads only the system-level
+# /etc/xdg/labwc/environment and ships with XCURSOR_THEME=PiXtrix /
+# XCURSOR_SIZE=24 baked in there. The user-level
+# ~/.config/labwc/environment is ignored by this wrapper, so the only
+# reliable way to switch cursors is to patch this file. Backed up once
+# on first run so the original can be restored.
+if [ -f "$SYSTEM_ENV_FILE" ]; then
+  if [ ! -f "${SYSTEM_ENV_FILE}.bak.knoxrpg" ]; then
+    $SUDO cp "$SYSTEM_ENV_FILE" "${SYSTEM_ENV_FILE}.bak.knoxrpg"
+  fi
+  if grep -q '^XCURSOR_THEME=' "$SYSTEM_ENV_FILE"; then
+    $SUDO sed -i "s|^XCURSOR_THEME=.*|XCURSOR_THEME=$THEME_NAME|" "$SYSTEM_ENV_FILE"
+  else
+    printf 'XCURSOR_THEME=%s\n' "$THEME_NAME" | $SUDO tee -a "$SYSTEM_ENV_FILE" >/dev/null
+  fi
+  if grep -q '^XCURSOR_SIZE=' "$SYSTEM_ENV_FILE"; then
+    $SUDO sed -i 's|^XCURSOR_SIZE=.*|XCURSOR_SIZE=1|' "$SYSTEM_ENV_FILE"
+  else
+    printf 'XCURSOR_SIZE=1\n' | $SUDO tee -a "$SYSTEM_ENV_FILE" >/dev/null
+  fi
+  echo "Patched $SYSTEM_ENV_FILE (original backed up to ${SYSTEM_ENV_FILE}.bak.knoxrpg)."
+else
+  echo "Warning: $SYSTEM_ENV_FILE not present; cursor theme may not be applied." >&2
+fi
 
 cat <<EOF
-Installed blank cursor theme '$THEME_NAME' for user '$TARGET_USER'.
-Wrote XCURSOR_THEME and XCURSOR_SIZE to: $ENV_FILE
-Reboot the Pi (or log the user out of labwc) for the change to take effect.
+Installed blank cursor theme '$THEME_NAME' to $THEME_DIR.
+Reboot the Pi for the labwc compositor to pick up the new XCURSOR_* values.
 EOF

@@ -23,6 +23,7 @@
         display: grid;
         place-items: center;
         color: #eff6ff;
+        cursor: none;
       }
 
       #display-shell {
@@ -239,6 +240,8 @@
       syncDisplayState();
       window.setInterval(loadActiveMap, 3000);
       window.setInterval(syncDisplayState, 1000);
+
+      document.body.style.cursor = 'none';
 
       if (document.documentElement.requestFullscreen) {
         document.documentElement.requestFullscreen().catch(() => {});

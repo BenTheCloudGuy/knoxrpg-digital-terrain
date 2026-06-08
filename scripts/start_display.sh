@@ -35,4 +35,7 @@ exec "$CHROMIUM_BIN" \
   --disable-session-crashed-bubble \
   --disable-dev-shm-usage \
   --start-fullscreen \
+  --password-store=basic \
+  --use-mock-keychain \
+  --disable-features=GlobalMediaControls,MediaRouter \
   "$DISPLAY_URL"

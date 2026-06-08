@@ -4,6 +4,11 @@ All notable changes to this project will be documented in this file.
 
 ## [Unreleased]
 
+## [1.0.12] - 2026-06-07
+
+### Fixed
+- Suppressed the GNOME keyring unlock prompt that appeared on the kiosk display after a reboot by launching Chromium with `--password-store=basic` and `--use-mock-keychain`. The kiosk has no need to persist secrets in the system keyring, so this avoids the Secret Service path entirely. Also disabled the unused `GlobalMediaControls` and `MediaRouter` features to keep extra dialogs from surfacing.
+
 ## [1.0.11] - 2026-06-07
 
 ### Added

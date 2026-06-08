@@ -23,6 +23,9 @@ cd client
 npm install
 cd "$PROJECT_DIR"
 
+echo "[2.5/4] Building the React client for production..."
+npm run build
+
 echo "[3/4] Creating systemd service..."
 cat > "$SERVICE_FILE" <<EOF
 [Unit]
@@ -33,10 +36,11 @@ Wants=network-online.target
 [Service]
 Type=simple
 WorkingDirectory=${PROJECT_DIR}
-ExecStart=/usr/bin/npm run start
+ExecStart=/usr/bin/env bash -lc 'cd "${PROJECT_DIR}" && npm run start'
 Restart=always
 RestartSec=5
 User=${SUDO_USER:-pi}
+Environment=PATH=/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin
 Environment=PORT=3001
 StandardOutput=append:${PROJECT_DIR}/logs/app.log
 StandardError=append:${PROJECT_DIR}/logs/app.log

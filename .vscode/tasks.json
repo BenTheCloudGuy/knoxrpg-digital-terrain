@@ -7,6 +7,13 @@
 			"command": "node --version && npm --version",
 			"isBackground": false,
 			"problemMatcher": []
+		},
+		{
+			"label": "Validate shell scripts",
+			"type": "shell",
+			"command": "bash -n scripts/install_and_run.sh && echo install_and_run.sh:OK && bash -n scripts/prepare_pi.sh && echo prepare_pi.sh:OK",
+			"isBackground": false,
+			"problemMatcher": []
 		}
 	]
 }

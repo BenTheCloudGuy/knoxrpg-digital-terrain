@@ -36,4 +36,4 @@ sudo chmod +x scripts/install_and_run.sh
 sudo ./scripts/install_and_run.sh
 ```
 
-This creates a systemd service named `knoxrpg-digital-terrain`, enables it on boot, and restarts it automatically if the app crashes.
+This creates a systemd service named `knoxrpg-digital-terrain`, installs Chromium for the HDMI display, and adds a kiosk display service named `knoxrpg-digital-terrain-display` that opens the full-screen map page on the main monitor when the desktop session starts.

@@ -3,7 +3,7 @@ set -euo pipefail
 
 echo "[1/5] Updating system packages..."
 sudo apt-get update
-sudo apt-get install -y curl git build-essential python3
+sudo apt-get install -y curl git build-essential python3 chromium
 
 echo "[2/5] Installing the latest stable Node.js and npm..."
 curl -fsSL https://deb.nodesource.com/setup_current.x | sudo -E bash -

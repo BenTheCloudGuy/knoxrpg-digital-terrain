@@ -1,0 +1,30 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+PROJECT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
+DISPLAY_URL="http://127.0.0.1:3001/display.html"
+
+cd "$PROJECT_DIR"
+
+if ! command -v chromium >/dev/null 2>&1; then
+  echo "chromium is not installed. Run scripts/prepare_pi.sh or install chromium first." >&2
+  exit 1
+fi
+
+export DISPLAY="${DISPLAY:-:0}"
+export XDG_RUNTIME_DIR="${XDG_RUNTIME_DIR:-/run/user/$(id -u)}"
+
+until curl -fsS http://127.0.0.1:3001/api/health >/dev/null 2>&1; do
+  echo "Waiting for the KnoxRPG API to be ready..."
+  sleep 2
+ done
+
+exec chromium \
+  --kiosk \
+  --no-first-run \
+  --noerrdialogs \
+  --disable-infobars \
+  --disable-session-crashed-bubble \
+  --disable-dev-shm-usage \
+  --start-fullscreen \
+  "$DISPLAY_URL"

@@ -4,6 +4,27 @@ All notable changes to this project will be documented in this file.
 
 ## [Unreleased]
 
+## [1.0.18] - 2026-06-08
+
+### Changed
+- Consolidated the Pi-side install scripts. `prepare_pi.sh`, `install_and_run.sh`, `restart_kdt.sh`, `install_blank_cursor.sh`, and `install_hdmi_cec_ignore.sh` are replaced by two scripts:
+  - `scripts/setup.sh` — one-shot fresh-Pi setup: OS packages, npm dependencies, client build, HDMI CEC udev rule, both systemd services. Run with `sudo bash scripts/setup.sh` then reboot.
+  - `scripts/restart.sh` — post-`git pull`: refreshes dependencies, rebuilds the client, self-heals the CEC udev rule if missing, and restarts both services. Run with `sudo bash scripts/restart.sh`.
+- Dropped the blank Xcursor theme workaround entirely. The real fix is removing pointer capability from labwc's seat via the CEC udev rule, so the cursor-theme machinery (1.0.10–1.0.16) is no longer needed.
+- Updated README, copilot-instructions, and the VS Code `Validate shell scripts` task to reference the new scripts.
+
+## [1.0.17] - 2026-06-08
+
+### Fixed
+- Identified the real source of the persistent cursor on the kiosk display: the Pi's `vc4-hdmi-0` and `vc4-hdmi-1` outputs are registered with libinput as keyboard + pointer devices (CEC remote-control signals from connected monitors), which causes labwc to enable pointer capability on its seat and render a default cursor even though no real mouse is attached. The blank Xcursor theme work in 1.0.14–1.0.16 only masked the symptom and was repeatedly defeated by labwc's built-in fallback arrow.
+- Added `scripts/install_hdmi_cec_ignore.sh`, which installs `/etc/udev/rules.d/70-knoxrpg-ignore-hdmi-cec.rules` to tell libinput to ignore any input device named `vc4-hdmi-?`. With these devices removed from seat0, labwc has no pointer capability and never renders a cursor. Verified live on the Pi: `libinput list-devices` now shows only `pwr_button` (keyboard-only), and the kiosk display has no visible cursor after reboot.
+- Wired the new installer into `install_and_run.sh`, `prepare_pi.sh`, and `restart_kdt.sh` (self-heal) so the rule is recreated on fresh installs and recovered if it ever goes missing. The blank Xcursor theme is kept as defense-in-depth in case a future Pi OS release re-introduces a different fake pointer source.
+
+## [1.0.16] - 2026-06-08
+
+### Fixed
+- The blank Xcursor theme installed in 1.0.15 only contained a 1x1 transparent cursor image. labwc's wlroots cursor renderer rejected the undersized image and fell back to its built-in arrow, so the kiosk display continued to show a visible pointer even though `XCURSOR_THEME=blank` was active. `install_blank_cursor.sh` now generates fully transparent RGBA PNGs at the standard sizes (16/24/32/48/64) and packs them into a single multi-size cursor so labwc accepts the theme and renders nothing visible. Verified by inspecting the rendered cursor in a `grim -c` screenshot of the live kiosk display, which previously showed the labwc fallback arrow.
+
 ## [1.0.15] - 2026-06-07
 
 ### Fixed

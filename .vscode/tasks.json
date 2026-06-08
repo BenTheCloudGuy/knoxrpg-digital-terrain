@@ -11,7 +11,7 @@
 		{
 			"label": "Validate shell scripts",
 			"type": "shell",
-			"command": "bash -n scripts/install_and_run.sh && echo install_and_run.sh:OK && bash -n scripts/prepare_pi.sh && echo prepare_pi.sh:OK",
+			"command": "bash -n scripts/setup.sh && echo setup.sh:OK && bash -n scripts/restart.sh && echo restart.sh:OK && bash -n scripts/start_display.sh && echo start_display.sh:OK",
 			"isBackground": false,
 			"problemMatcher": []
 		}

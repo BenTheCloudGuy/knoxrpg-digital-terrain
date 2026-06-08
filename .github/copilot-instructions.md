@@ -39,8 +39,6 @@ This repository contains the code for the KnoxRPG Digital Terrain App, a web app
 - Use meaningful variable and function names that clearly indicate their purpose.
 
 ## Raspberry Pi Setup
-- Use `scripts/prepare_pi.sh` to install the latest stable Node.js and npm, project dependencies, and the local upload/data folders on the Raspberry Pi.
-- Run the script with:
-  - `chmod +x scripts/prepare_pi.sh`
-  - `./scripts/prepare_pi.sh`
-- The setup script is the required first step before launching the app on the Pi hardware.
+- Use `scripts/setup.sh` for first-time provisioning of a Pi: installs Node.js, Chromium, npm dependencies, builds the React client, installs the HDMI CEC ignore udev rule (kills the kiosk-display mouse cursor), and creates the two systemd services (`knoxrpg-digital-terrain`, `knoxrpg-digital-terrain-display`). Run with `sudo bash scripts/setup.sh`, then `sudo reboot`.
+- Use `scripts/restart.sh` after each `git pull` to refresh npm dependencies, rebuild the client, self-heal OS-level config, and restart both services. Run with `sudo bash scripts/restart.sh`.
+- `scripts/start_display.sh` is invoked by the display systemd unit; do not run it manually.

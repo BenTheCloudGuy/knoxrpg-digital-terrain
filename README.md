@@ -18,38 +18,25 @@ This project now includes:
 
 For the deployed Raspberry Pi runtime, the admin page is served on `http://localhost:3001/` on the Pi itself, or on the Pi LAN address such as `http://192.168.137.181:3001/` from another machine on the same network.
 
-## Prepare a Raspberry Pi
+## Set up a Raspberry Pi
 
-Run the setup script on the Pi before starting the app:
-
-```sh
-chmod +x scripts/prepare_pi.sh
-./scripts/prepare_pi.sh
-```
-
-This installs the latest stable Node.js and npm, the project dependencies, and the required local data/upload folders for the app.
-
-## Install and run as a service
-
-To install dependencies and configure the app to start automatically on boot:
+Run the setup script once on a fresh Pi (or any time you want to reset systemd units and OS-level config):
 
 ```sh
-sudo chmod +x scripts/install_and_run.sh
-sudo ./scripts/install_and_run.sh
+sudo bash scripts/setup.sh
+sudo reboot
 ```
 
-This creates a systemd service named `knoxrpg-digital-terrain`, installs Chromium for the HDMI display, and adds a kiosk display service named `knoxrpg-digital-terrain-display` that opens the full-screen map page on the main monitor when the desktop session starts.
+This installs Node.js + Chromium + build tools, installs npm dependencies, builds the React client, installs the udev rule that prevents the labwc compositor from rendering a mouse cursor on the kiosk display (the HDMI CEC ignore rule), and creates the `knoxrpg-digital-terrain` (API) and `knoxrpg-digital-terrain-display` (kiosk Chromium) systemd services. Re-running is safe.
 
 ## Update the application on the Raspberry Pi
 
-When you pull new code to the Pi, the running services do not hot-reload automatically. Restart the systemd services so the updated app and display page are picked up:
+After pulling new code, run the restart script. It refreshes npm dependencies, rebuilds the client, self-heals OS-level config if needed, and restarts both services:
 
 ```sh
 cd /home/benthebuilder/knoxrpg-digital-terrain
 git pull
-sudo systemctl daemon-reload
-sudo systemctl restart knoxrpg-digital-terrain.service
-sudo systemctl restart knoxrpg-digital-terrain-display.service
+sudo bash scripts/restart.sh
 ```
 
-If you only changed source files and not the systemd unit file, the `daemon-reload` step is optional. The restart commands above are the important part for applying the new build and display page changes.
+If the restart script reports that OS-level config was reinstalled, reboot the Pi so labwc picks up the change.

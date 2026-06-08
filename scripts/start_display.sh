@@ -19,10 +19,8 @@ fi
 
 export DISPLAY="${DISPLAY:-:0}"
 export XDG_RUNTIME_DIR="${XDG_RUNTIME_DIR:-/run/user/$(id -u)}"
-
-if command -v xsetroot >/dev/null 2>&1; then
-  xsetroot -cursor_name none || true
-fi
+export DBUS_SESSION_BUS_ADDRESS="${DBUS_SESSION_BUS_ADDRESS:-unix:path=${XDG_RUNTIME_DIR}/bus}"
+export HOME="${HOME:-$(getent passwd "$(id -un)" 2>/dev/null | cut -d: -f6)}"
 
 until curl -fsS http://127.0.0.1:3001/api/health >/dev/null 2>&1; do
   echo "Waiting for the KnoxRPG API to be ready..."

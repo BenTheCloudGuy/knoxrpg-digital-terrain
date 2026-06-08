@@ -15,7 +15,7 @@ cd "$PROJECT_DIR"
 echo "[1/4] Installing Node.js, npm, and Chromium..."
 curl -fsSL https://deb.nodesource.com/setup_current.x | bash -
 apt-get update
-apt-get install -y nodejs git build-essential python3 chromium
+apt-get install -y nodejs git build-essential python3 chromium x11-apps
 
 echo "[2/4] Installing project dependencies..."
 npm install
@@ -25,6 +25,9 @@ cd "$PROJECT_DIR"
 
 echo "[2.5/4] Building the React client for production..."
 npm run build
+
+echo "[2.7/4] Installing blank Xcursor theme for the kiosk user..."
+runuser -u "${SUDO_USER:-pi}" -- bash "${PROJECT_DIR}/scripts/install_blank_cursor.sh"
 
 echo "[3/4] Creating systemd services..."
 cat > "$SERVICE_FILE" <<EOF

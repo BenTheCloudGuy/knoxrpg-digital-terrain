@@ -4,8 +4,13 @@ All notable changes to this project will be documented in this file.
 
 ## [Unreleased]
 
-### Changed
-- Added repository guardrails to require explicit user approval for runtime changes and to require changelog/version updates for every code change.
+### Fixed
+- Prevented Git refreshes from overwriting uploaded map data by excluding runtime data files from version control.
+
+## [1.0.2] - 2026-06-08
+
+### Fixed
+- Protected uploaded map data and media files from being wiped by pull/update operations.
 
 ## [1.0.1] - 2026-06-08
 

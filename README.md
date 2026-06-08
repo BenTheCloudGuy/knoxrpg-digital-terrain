@@ -16,6 +16,8 @@ This project now includes:
 3. Open the admin interface at `http://localhost:5173`.
 4. Open the display page at `http://localhost:5173/display.html` or the built path after `npm run build`.
 
+For the deployed Raspberry Pi runtime, the admin page is served on `http://localhost:3001/` on the Pi itself, or on the Pi LAN address such as `http://192.168.137.181:3001/` from another machine on the same network.
+
 ## Prepare a Raspberry Pi
 
 Run the setup script on the Pi before starting the app:

@@ -131,11 +131,32 @@
         updateZoom();
       }
 
+      function isSameMap(left, right) {
+        if (!left || !right) return left === right;
+        return left.id === right.id
+          && left.type === right.type
+          && left.path === right.path
+          && left.name === right.name;
+      }
+
       function loadActiveMap() {
         fetch('/api/maps/active')
           .then((response) => response.json())
-          .then((map) => renderMap(map))
-          .catch(() => renderMap(null));
+          .then((map) => {
+            if (!isSameMap(currentMap, map)) {
+              renderMap(map);
+              return;
+            }
+
+            if (map?.type === 'video' && currentVideoElement && currentVideoElement.paused) {
+              currentVideoElement.play().catch(() => {});
+            }
+          })
+          .catch(() => {
+            if (currentMap) {
+              renderMap(null);
+            }
+          });
       }
 
       displayChannel?.addEventListener('message', (event) => {
@@ -151,6 +172,16 @@
           if (action === 'pause') currentVideoElement.pause();
           if (action === 'toggle-loop') {
             currentVideoElement.loop = !currentVideoElement.loop;
+          }
+        }
+      });
+
+      window.addEventListener('storage', (event) => {
+        if (event.key === 'knoxrpg-zoom' && typeof event.newValue === 'string') {
+          const nextZoom = Number(event.newValue);
+          if (!Number.isNaN(nextZoom)) {
+            zoomState.level = nextZoom;
+            updateZoom();
           }
         }
       });

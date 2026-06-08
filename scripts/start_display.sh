@@ -8,9 +8,13 @@ DISPLAY_URL="${DISPLAY_URL:-http://${HOST_IP}:3001/display.html}"
 
 cd "$PROJECT_DIR"
 
-if ! command -v chromium >/dev/null 2>&1; then
-  echo "chromium is not installed. Run scripts/prepare_pi.sh or install chromium first." >&2
-  exit 1
+CHROMIUM_BIN="/usr/lib/chromium/chromium"
+if [ ! -x "$CHROMIUM_BIN" ]; then
+  if ! command -v chromium >/dev/null 2>&1; then
+    echo "chromium is not installed. Run scripts/prepare_pi.sh or install chromium first." >&2
+    exit 1
+  fi
+  CHROMIUM_BIN="$(command -v chromium)"
 fi
 
 export DISPLAY="${DISPLAY:-:0}"
@@ -21,7 +25,7 @@ until curl -fsS http://127.0.0.1:3001/api/health >/dev/null 2>&1; do
   sleep 2
  done
 
-exec chromium \
+exec "$CHROMIUM_BIN" \
   --kiosk \
   --no-first-run \
   --noerrdialogs \

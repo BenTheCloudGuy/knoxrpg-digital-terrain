@@ -6,6 +6,7 @@ const multer = require('multer');
 
 const app = express();
 const PORT = process.env.PORT || 3001;
+const MAX_UPLOAD_SIZE_MB = Number(process.env.MAX_UPLOAD_SIZE_MB || 2048);
 
 const uploadsDir = path.join(__dirname, '..', 'uploads');
 const dataDir = path.join(__dirname, '..', 'data');
@@ -84,7 +85,7 @@ const upload = multer({
     cb(new Error('Only JPEG, PNG, WEBP, MP4, and WEBM files are supported.'));
   },
   limits: {
-    fileSize: 50 * 1024 * 1024,
+    fileSize: MAX_UPLOAD_SIZE_MB * 1024 * 1024,
   },
 });
 
@@ -228,7 +229,11 @@ app.delete('/api/maps/:id', (req, res) => {
 
 app.use((error, _req, res, _next) => {
   if (error instanceof multer.MulterError) {
-    res.status(400).json({ error: error.message });
+    const message = error.code === 'LIMIT_FILE_SIZE'
+      ? `File too large. Maximum upload size is ${MAX_UPLOAD_SIZE_MB} MB.`
+      : error.message;
+
+    res.status(413).json({ error: message });
     return;
   }
 

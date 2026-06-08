@@ -9,6 +9,7 @@ All notable changes to this project will be documented in this file.
 - Made the Pi restart helper use non-interactive npm commands so the update path completes reliably on the remote host.
 - Updated the map library layout to stack cards top-to-bottom with consistent sizing and fixed the video-control polling path used by Play/Pause actions.
 - Hid the display-page cursor on launch so the full-screen main display stays clean.
+- Added an X11 cursor-hide step to the Pi Chromium launcher so the pointer stays invisible in kiosk mode.
 - Prevented Git refreshes from overwriting uploaded map data by excluding runtime data files from version control.
 - Restored the Pi runtime startup path by fixing the display launcher and documenting the dependency/build requirement for `npm run build`.
 

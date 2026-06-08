@@ -1,6 +1,6 @@
 {
   "name": "knoxrpg-digital-terrain-client",
-  "version": "1.0.7",
+  "version": "1.0.8",
   "private": true,
   "scripts": {
     "dev": "vite --port 5173",

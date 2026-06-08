@@ -167,14 +167,18 @@
               updateZoom(state.zoom);
             }
 
-            if (state?.videoAction && state.videoAction !== lastVideoAction) {
-              lastVideoAction = state.videoAction;
-              applyVideoAction(state.videoAction);
-              fetch('/api/display/video/ack', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ action: state.videoAction }),
-              }).catch(() => {});
+            if (state?.videoAction) {
+              if (state.videoAction !== lastVideoAction) {
+                lastVideoAction = state.videoAction;
+                applyVideoAction(state.videoAction);
+                fetch('/api/display/video/ack', {
+                  method: 'POST',
+                  headers: { 'Content-Type': 'application/json' },
+                  body: JSON.stringify({ action: state.videoAction }),
+                }).catch(() => {});
+              }
+            } else {
+              lastVideoAction = null;
             }
           })
           .catch(() => {});

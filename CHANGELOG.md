@@ -6,6 +6,8 @@ All notable changes to this project will be documented in this file.
 
 ### Fixed
 - Increased the upload limit for media files so larger MP4/WEBM maps no longer fail with file-size errors.
+- Made the Pi restart helper use non-interactive npm commands so the update path completes reliably on the remote host.
+- Updated the map library layout to stack cards top-to-bottom with consistent sizing and fixed the video-control polling path used by Play/Pause actions.
 - Prevented Git refreshes from overwriting uploaded map data by excluding runtime data files from version control.
 - Restored the Pi runtime startup path by fixing the display launcher and documenting the dependency/build requirement for `npm run build`.
 

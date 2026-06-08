@@ -14,7 +14,11 @@ APP_USER="benthebuilder"
 printf 'Refreshing runtime dependencies for %s...\n' "$APP_USER"
 mkdir -p "$APP_DIR/uploads" "$APP_DIR/data" "${APP_DIR}/logs"
 chown -R "$APP_USER:$APP_USER" "$APP_DIR"
-runuser -u "$APP_USER" -- bash -lc "cd '$APP_DIR' && npm install && cd client && npm install && npm run build"
+runuser -u "$APP_USER" -- env \
+  npm_config_progress=false \
+  npm_config_audit=false \
+  npm_config_fund=false \
+  bash -lc "cd '$APP_DIR' && npm install --no-audit --no-fund --no-progress && cd client && npm install --no-audit --no-fund --no-progress && npm run build"
 
 printf 'Restarting KnoxRPG Digital Terrain services...\n'
 systemctl restart "$SYSTEMD_SERVICE"

@@ -10,6 +10,7 @@ const PORT = process.env.PORT || 3001;
 const uploadsDir = path.join(__dirname, '..', 'uploads');
 const dataDir = path.join(__dirname, '..', 'data');
 const mapsFile = path.join(dataDir, 'maps.json');
+const displayStateFile = path.join(dataDir, 'display-state.json');
 const clientDistDir = path.join(__dirname, '..', 'client', 'dist');
 
 function ensureStorage() {
@@ -29,6 +30,39 @@ function readMaps() {
 function saveMaps(maps) {
   ensureStorage();
   fs.writeFileSync(mapsFile, JSON.stringify(maps, null, 2), 'utf8');
+}
+
+function readDisplayState() {
+  ensureStorage();
+
+  if (!fs.existsSync(displayStateFile)) {
+    saveDisplayState({ zoom: 1, videoAction: null });
+  }
+
+  return JSON.parse(fs.readFileSync(displayStateFile, 'utf8'));
+}
+
+function saveDisplayState(state) {
+  ensureStorage();
+
+  const nextState = {
+    zoom: 1,
+    videoAction: null,
+    ...state,
+    updatedAt: new Date().toISOString(),
+  };
+
+  fs.writeFileSync(displayStateFile, JSON.stringify(nextState, null, 2), 'utf8');
+  return nextState;
+}
+
+function normalizeZoom(value) {
+  const nextZoom = Number(value);
+  if (!Number.isFinite(nextZoom)) {
+    return 1;
+  }
+
+  return Math.min(3, Math.max(0.7, nextZoom));
 }
 
 const upload = multer({
@@ -70,6 +104,41 @@ app.get('/api/maps/active', (_req, res) => {
   const maps = readMaps();
   const activeMap = maps.find((map) => map.active) || maps[0] || null;
   res.json(activeMap);
+});
+
+app.get('/api/display/state', (_req, res) => {
+  res.json(readDisplayState());
+});
+
+app.put('/api/display/zoom', express.json(), (req, res) => {
+  const nextZoom = normalizeZoom(req.body?.level ?? 1);
+  const state = saveDisplayState({ zoom: nextZoom, videoAction: null });
+  res.json(state);
+});
+
+app.post('/api/display/video', express.json(), (req, res) => {
+  const action = String(req.body?.action || '').trim();
+
+  if (!['play', 'pause', 'toggle-loop'].includes(action)) {
+    res.status(400).json({ error: 'Unsupported video action.' });
+    return;
+  }
+
+  const state = saveDisplayState({
+    zoom: normalizeZoom(readDisplayState().zoom),
+    videoAction: action,
+  });
+
+  res.json(state);
+});
+
+app.post('/api/display/video/ack', express.json(), (_req, res) => {
+  const state = saveDisplayState({
+    zoom: normalizeZoom(readDisplayState().zoom),
+    videoAction: null,
+  });
+
+  res.json(state);
 });
 
 app.post('/api/maps', upload.single('file'), (req, res, next) => {

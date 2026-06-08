@@ -37,15 +37,41 @@ export default function App() {
     };
   }, []);
 
+  async function syncDisplayZoom(level) {
+    try {
+      await fetch('/api/display/zoom', {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ level }),
+      });
+    } catch (error) {
+      // Fallback to local browser messaging when the server is unavailable.
+    }
+  }
+
+  async function syncDisplayVideo(action) {
+    try {
+      await fetch('/api/display/video', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ action }),
+      });
+    } catch (error) {
+      // Fallback to local browser messaging when the server is unavailable.
+    }
+  }
+
   function updateZoom(delta) {
     const nextZoom = Math.min(2.5, Math.max(0.8, zoomLevel + delta));
     setZoomLevel(nextZoom);
     localStorage.setItem('knoxrpg-zoom', String(nextZoom));
     channelRef.current?.postMessage({ type: 'zoom', level: nextZoom });
+    syncDisplayZoom(nextZoom).catch(() => {});
   }
 
   function sendVideoCommand(action) {
     channelRef.current?.postMessage({ type: 'video', action });
+    syncDisplayVideo(action).catch(() => {});
   }
 
   async function handleUpload(event) {
@@ -157,6 +183,7 @@ export default function App() {
               setZoomLevel(1);
               localStorage.setItem('knoxrpg-zoom', '1');
               channelRef.current?.postMessage({ type: 'zoom', level: 1 });
+              syncDisplayZoom(1).catch(() => {});
             }}>Reset</button>
           </div>
           {activeMap?.type === 'video' ? (

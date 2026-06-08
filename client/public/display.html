@@ -86,9 +86,12 @@
       const displayChannel = typeof BroadcastChannel !== 'undefined' ? new BroadcastChannel('knoxrpg-display') : null;
       let currentMap = null;
       let currentVideoElement = null;
+      let lastVideoAction = null;
 
-      function updateZoom() {
+      function updateZoom(level = zoomState.level) {
+        zoomState.level = level;
         mediaFrame.style.setProperty('--zoom', zoomState.level.toFixed(2));
+        localStorage.setItem('knoxrpg-zoom', String(zoomState.level));
       }
 
       function renderMap(map) {
@@ -127,8 +130,7 @@
       }
 
       function changeZoom(delta) {
-        zoomState.level = Math.min(3, Math.max(0.7, zoomState.level + delta));
-        updateZoom();
+        updateZoom(Math.min(3, Math.max(0.7, zoomState.level + delta)));
       }
 
       function isSameMap(left, right) {
@@ -137,6 +139,45 @@
           && left.type === right.type
           && left.path === right.path
           && left.name === right.name;
+      }
+
+      function applyVideoAction(action) {
+        if (!currentVideoElement) {
+          return;
+        }
+
+        if (action === 'play') {
+          currentVideoElement.play().catch(() => {});
+        }
+
+        if (action === 'pause') {
+          currentVideoElement.pause();
+        }
+
+        if (action === 'toggle-loop') {
+          currentVideoElement.loop = !currentVideoElement.loop;
+        }
+      }
+
+      function syncDisplayState() {
+        fetch('/api/display/state')
+          .then((response) => response.json())
+          .then((state) => {
+            if (typeof state?.zoom === 'number') {
+              updateZoom(state.zoom);
+            }
+
+            if (state?.videoAction && state.videoAction !== lastVideoAction) {
+              lastVideoAction = state.videoAction;
+              applyVideoAction(state.videoAction);
+              fetch('/api/display/video/ack', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ action: state.videoAction }),
+              }).catch(() => {});
+            }
+          })
+          .catch(() => {});
       }
 
       function loadActiveMap() {
@@ -162,17 +203,12 @@
       displayChannel?.addEventListener('message', (event) => {
         const { type, level, action } = event.data || {};
         if (type === 'zoom' && typeof level === 'number') {
-          zoomState.level = level;
-          updateZoom();
+          updateZoom(level);
           return;
         }
 
-        if (type === 'video' && currentVideoElement) {
-          if (action === 'play') currentVideoElement.play().catch(() => {});
-          if (action === 'pause') currentVideoElement.pause();
-          if (action === 'toggle-loop') {
-            currentVideoElement.loop = !currentVideoElement.loop;
-          }
+        if (type === 'video') {
+          applyVideoAction(action);
         }
       });
 
@@ -180,8 +216,7 @@
         if (event.key === 'knoxrpg-zoom' && typeof event.newValue === 'string') {
           const nextZoom = Number(event.newValue);
           if (!Number.isNaN(nextZoom)) {
-            zoomState.level = nextZoom;
-            updateZoom();
+            updateZoom(nextZoom);
           }
         }
       });
@@ -197,7 +232,9 @@
       });
 
       loadActiveMap();
+      syncDisplayState();
       window.setInterval(loadActiveMap, 3000);
+      window.setInterval(syncDisplayState, 1000);
 
       if (document.documentElement.requestFullscreen) {
         document.documentElement.requestFullscreen().catch(() => {});

@@ -39,3 +39,17 @@ sudo ./scripts/install_and_run.sh
 ```
 
 This creates a systemd service named `knoxrpg-digital-terrain`, installs Chromium for the HDMI display, and adds a kiosk display service named `knoxrpg-digital-terrain-display` that opens the full-screen map page on the main monitor when the desktop session starts.
+
+## Update the application on the Raspberry Pi
+
+When you pull new code to the Pi, the running services do not hot-reload automatically. Restart the systemd services so the updated app and display page are picked up:
+
+```sh
+cd /home/benthebuilder/knoxrpg-digital-terrain
+git pull
+sudo systemctl daemon-reload
+sudo systemctl restart knoxrpg-digital-terrain.service
+sudo systemctl restart knoxrpg-digital-terrain-display.service
+```
+
+If you only changed source files and not the systemd unit file, the `daemon-reload` step is optional. The restart commands above are the important part for applying the new build and display page changes.

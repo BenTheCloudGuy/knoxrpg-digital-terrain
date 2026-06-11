@@ -4,6 +4,11 @@ All notable changes to this project will be documented in this file.
 
 ## [Unreleased]
 
+## [1.0.19] - 2026-06-11
+
+### Changed
+- Rewrote README with proper project overview, quick-start instructions, architecture summary, and development setup.
+
 ## [1.0.18] - 2026-06-08
 
 ### Changed
